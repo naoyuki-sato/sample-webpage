@@ -1,1 +1,82 @@
-hello world
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>Vue.js SPA Example</title>
+</head>
+<body>
+  <div id="app">
+    <nav>
+      <router-link to="/pageA">ページA</router-link>
+      <router-link to="/pageB">ページB</router-link>
+    </nav>
+    <router-view></router-view>
+  </div>
+
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script src="https://unpkg.com/vue-router@4"></script>
+  <script>
+    const PageA = {
+      template: `
+        <div>
+          <h1>ページA</h1>
+          <select v-model="selectedItem">
+            <option value="">選択してください</option>
+            <option v-for="item in items" :key="item.id" :value="item.name">{{ item.name }}</option>
+          </select>
+          <p>選択された項目: {{ selectedItem }}</p>
+        </div>
+      `,
+      data() {
+        return {
+          items: [
+            { id: 1, name: 'リンゴ' },
+            { id: 2, name: 'バナナ' },
+            { id: 3, name: 'オレンジ' }
+          ],
+          selectedItem: ''
+        };
+      },
+      // ページ遷移前に選択値を保存
+      beforeRouteLeave(to, from, next) {
+        if (to.path === '/pageB' && this.selectedItem) {
+          to.params.selectedItem = this.selectedItem;
+        }
+        next();
+      }
+    };
+
+    const PageB = {
+      template: `
+        <div>
+          <h1>ページB</h1>
+          <p v-if="$route.params.selectedItem">
+            ページAで選択された項目: {{ $route.params.selectedItem }}
+          </p>
+          <p v-else>
+            ページAで何も選択されていません。
+          </p>
+        </div>
+      `,
+       mounted() {
+        console.log(this.$route.params);
+      }
+    };
+
+    const routes = [
+      { path: '/pageA', component: PageA },
+      { path: '/pageB', component: PageB, props: true },
+      { path: '/', redirect: '/pageA' }
+    ];
+
+    const router = VueRouter.createRouter({
+      history: VueRouter.createWebHistory(),
+      routes
+    });
+
+    const app = Vue.createApp({});
+    app.use(router);
+    app.mount('#app');
+  </script>
+</body>
+</html>
